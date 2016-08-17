@@ -1,0 +1,1404 @@
+
+Contents:
+
+[i]   Development History. Comments for each update.
+[ii]  Bug Reports. Known issues that need improvement.
+[iii] Notes. Old summaries from the bulletin board, and announcements.
+
+
+
+
+**************************************************************************
+------------------------------------------
+[i]
+
+VERSION HISTORY FOR THE MATLAB GUI (AND ASSOCIATED COLLECTION OF SCRIPTS)
+
+
+
+February 2014
+
+Version 2.38
+
+1. Edited rainSTORM_boxTracker to make deletion of polygonal 
+   areas possible.
+2. Added a rainSTORM_extras_selectInPolygon
+
+
+TO DO:
+--- The Tif library sometimes issues unnecessary warnings for some data files
+-- Users may work arounf this with 
+
+> warning off
+
+-- Or the warning could be disabled via 
+
+> id = MATLAB:imagesci:Tiff:libraryWarning
+> warning('off',id)
+
+(b) SORT OUT SupResPosits accumulation. (If not done yet)
+
+
+
+Version 2.37
+September 2013
+
+1. Edited rainsTORM_main_GUI_both reading method for TIFFs. 
+   Now using the updated Tiff.m methods. 
+   This is much faster at reading image stacks, but requires:
+     Either MATLAB 2013a or later (I think),
+     Or     MATLAB 2009b or later, with the Mathworks patch for libtiff
+  -- http://www.matlabtips.com/mathworks-has-listened-to-our-tiff-prays/
+
+   Difference in performance is 465 seconds down to 136 seconds 
+   by using the new libTIFF, 
+   for a 320 MB image stack (actin).
+
+  Also edited rainSTORM_main_GUI_tif 
+  This is for parallel processing - will have to test...
+  ... Tested - I changed the file reading to read the whole file 
+   before parallel processing, then it works (35 seconds for the test file). 
+
+2. Changed background estimation to something quicker, but approximate. 
+   Background estimation continues to be a non-exact science here...
+   Have changed 
+
+3. Replaced waitbar (20 ms per call) with a faster version
+   Which only makes a max of ten calls, depending on number of frames.
+
+To do:
+
+(a) Test parallel TIF reading. 
+       -- fix Warning notifications when reading slightly incompliant TIFFs
+(b) SORT OUT SupResPosits accumulation.
+
+
+Version 2.36 
+9 July 2013
+
+1. Fixed bug in parallel rainSTORM_main, which caused the new BG estimation to fail
+
+2. Not tested - I have no parallel toolkit to test this at the moment, so submit bug 
+    reports to EJR by email, on this point.
+
+3. Changed jhArbitFactor to 0.85, which visually looks marginally better than 0.9 in some test cases. 
+   These parameters are, of course, user-editable in the function "rainSTORM_recon_JH.m"
+
+To Do:
+
+1. Edit "Select All" method to return boxedDeltaX = reviewedDeltaX OK
+2. Edit boxedTracker to return selectedRows (a logical mask for reviewedPosits) - 
+    this is needed to identify boxed JH Params (e.g. kernel widths) - Done
+3. Edit recon_JH to use X-Y anisotropic kernel widths - this is relevant for 
+    optimal fibril reconstruction (e.g. if precision is better on the x-section axis)
+    - Still to do.
+
+
+
+Version 2.35
+7 July 2013
+
+1. Tweaked JH pilot estimate coarseness. 
+   Still should switch to E.g. fixed Gaussian kernel, as still not really perfect
+
+
+2. Edited background subtraction. 
+   Bright spots are now excluded from background estimation.
+   This uses the imerode() function
+   Image Processing toolkit is now needed.
+   The fluorophore-skipping background estimation should improve Thompson precision 
+   estimates, needed for optimal KDE visualisation and deconvolution...
+
+3. The new background estimation seems a little slower
+   Using LIBTIF for modern MATLAB (2011 + ) might ameliorate the loss of speed
+   (Not done yet. May need MATLAB 2012+)
+
+4. I have put the improved estimation into the parallel codes, 
+   But have not tested the parallel codes
+
+5. Accuracy for deconvolution does seem to be improved.
+
+
+Version 2.34 
+  7 June 2013
+
+At the request of AK, DM, for Michelle Peckham, have added photon number data
+- not sure why I hadn't previously included this.
+
+1. The rainSTORM_precision script now returns estimated photon numbers
+2. The rainSTORM_reviewer now saves reviewedPhotonNums to the base workspace
+3. The rainSTORM_extras_TrajectoryFitting now saves entire-trajectory photon estimates
+
+Note: Risks of photon number estimation:
+
+- Camera deadtime: non-detected photons will not be counted, nor estimated
+- Imperfect background subtraction: still using subtract min(ROI(:))
+- Naive trajectory fitting
+- Accepting some non-single-molecule data
+
+
+To use Photon number estimation
+1. Run rainSTORM GUI "Process Images"
+2. Open Reviewer, and Run Reviewer
+3. Plot a histogram of "reviewedPhotonNums" OR
+4. Select All, or Box Tracking
+5. Run rainSTORM_extras_TrajectoryFitting script
+6. Wait for the photon number histogram
+7. Plot Histogram of trajectoryPhotonNums (if wanted)
+
+- Let me know if this works: have not validated on Simulated Data yet
+
+
+To Do
+1. I notice that it is mainly my "extras" scripts that clutter the base 
+   workspace with masses of variables. The rainSTORM and Reviewer seem 
+   to be pretty modest.
+2. Could do with rationalising variable names, and tidying less useful ones.
+
+
+
+Version 2.33
+
+1. Edited rainSTORM_recon 
+     So that jitterered positions placed outside the image are ignored, 
+     and so do not produce an error
+
+
+To Do:
+(a) Consider Epanecknikov kernel visualisation instead of Gaussian
+    (Although probably not much improved, might be publishable.)
+(b) Incorporate improved background estimation
+
+
+
+Version 2.32
+
+Dear Daniel, 
+
+Attached is rainSTORM GUI 2.32. 
+
+There are 2 significant improvements:
+
+*** A new, Luxury visualisation - jittered histogram
+
+*** And better simulation tools for diffusion.
+
+Specific Changes:
+
+1. rainSTORM_extras_simulateDiffusion.m added
+     This is for summer projects, testing single molecule diffusion imaging
+     Works for me - EJR
+
+2. rainSTORM_extras_MSDanalysis.m
+     This script takes Trajectory Data and plots Mean Squared Displacement. 
+     This is for Single Molecule Diffusion Imaging. 
+     The stages of Diffusion Imaging are:
+       (a) Localisation (as for microscopy)
+       (b) Quality Control
+       (c) Identifying Trajectories from localisation data
+           Trajectories may be the end point for some tracking methods
+       (d) Mean Squared Displacement Analysis
+     See Micro-rheology and particle tracking references, E.g. Saxon
+
+3. Reviewer GUI has been edited
+     Simplified the "Visualisation Select" code
+       Still no Jittered Histogram code yet - student project.
+     Re-arranged "Box Tracker and Fiduciary Drift Correction panel
+       Added a "Select All" button
+       This circumvents the tedious multi-colour scatterplot
+       And thus removes an annoying wait from Diffusion Analysis 
+     Added a "flagSelectedAll" indicator for the base workspace
+     Removed the "visualisation menu inactive" as it now works.
+
+4. Modified rainSTORMrecon.m with a ceil() 
+     to enable non-integer "LinMag" terms. 
+
+5. rainSTORM_recon_JH.m
+     Added a "Jittered Histogram Visualisation"
+     Based on Silverman and Krizek / Baddeley - see script for REFs
+     Calculates adaptive kernel density estimate of density
+     Using the "digital" adaptive kernel method
+     This method ignores the user-specified pixel width of the reconstruction
+       and chooses a pixel with for itself
+     It is based on Thompson Localisation precision - 
+       so it may go wrong, for inaccurate photon or background values
+     Try tweaking the Arbitrary Scale Factor 'jhArbitFactor' if this is bad
+     Or just stick with the Simple Histogram visualisation
+
+6. Changed names of some saved file outputs:
+     dataFileName-onScreenImage replaces "-processed"
+     dataFileName-JHistImage contains data of jitt hist, if present
+
+
+To do: 
+   (a) Merge Hyunsun's multi-bead fiduciary drift correction method
+   (b) I know the current rainSTORM place a lot of stuff in the base 
+       workspace.
+       I think this is useful, or not a problem - will ask if any 
+       users want this changed. 
+
+Notes - I tried a "Square Root of intensity" visualisation, but 
+        did not like the background-enhancing effect
+
+
+
+Version 2-31
+
+1. Fixed bug in rainSTORM_GUI_RAW_par
+   Removed the extraneous "ext" argument that caused it to crash.
+
+2. Fixed bug in rainSTORM_GUI_RAW_par
+   A "myFrame" is assigned to 'base' workspace, to indicate CCD frame size
+   In future, the need for this image data should be removed
+
+3. Edited Save method.
+   Asssuming the "Run Reviewer" has been used (!), then...
+   "Save Image" should auto-run the Histograms plot if this is not yet done
+   I think this will be simpler for users, and rarely unhelpful.
+
+4. Edited graphics. 
+   More colourful histograms to clarify accepted / rejected data.
+   Grey bars
+
+Note: bar chart seems bugy if there is a single bar in a range.
+
+
+Ideas + Requests from Daniel:
+
+(A)     Histograms - when updating the reviewer parameters and
+generating a new image the only 1 of the 4 histograms that updates is
+the localisations per frame. I think it would be better to have the
+other three update to reflect the data in the final super-resolution
+image.
+
+-- OK - done.
+
+(B)     An additional rainSTORM feature that could be of use is the
+ability to draw a line and have the software calculate a FWHM of an
+object of interest (fluorescent bead, vesicle, actin filament etc). I
+saw this feature in Vutara's software and it seemed quite useful.
+Perhaps an additional piece of resolution information to go along with
+the text file. It would further any claims we might want to make that
+rainSTORM is the best software out there for resolution and image
+quality metrics. I realise this can be done in ImageJ if you know what
+you're doing (but many of us biologists don't!).
+
+-- Not done - try imageJ for now.
+
+-- EJR "Any claims we might want to make" hoho
+
+(C)     Optical offset - is it necessary to input the exact number of
+markers? What happens if you go too low or too high? When you evaluate
+and subtract the offset it would be reassuring to know what kind of
+offset has been applied. Is it possible to generate some kind of message
+or figure to say that something has been done? At the moment the only
+way is to go back to the bead data and overlay it and compare before and
+after.
+
+-- No. Specifying "50" markers means that it will only try to use the
+brightest 50 markers.
+
+(D)     Drift correction - would it be better to create some kind of
+interpolation in case of missing frames? And would it help to smooth out
+any inaccuracies created by the occasional anomalous bead localisation.
+Again perhaps some kind of image or message to say an approximate amount
+of drift that was corrected for would be reassuring. Perhaps
+incorporated into the text file if possible.
+
+-- Yes it would be
+-- Project given to Hyungsun Kim. Will merge if it works well.
+
+
+(E)     Sum image - doesn't parallel process in the raw version (tifs
+are fine).
+
+-- Good luck getting that to parallel process.
+
+--
+
+-- Comments by email:
+
+"Radius of ROI' = 3 means that the area of interest for each spot is a 7x7 area. 
+This is the default, and it is generally reasonable.
+I believe Marcus Sauer may use 11 by 11, but with smaller (100 nm) pixels?
+
+This is because the fitted area runs from (centre position - 3) up 
+to (centre position + 3). Try typiing -3:3 into MATLAB if unclear.
+
+Anyway, Re: the change in estimated precision with 100 nm pixels, 
+I suspect that the main reasons are two:
+
+1. d.c. background subtraction leads to an over-wide estimate of the PSF being fitted.
+
+--> I will try out other background subtraction methods.
+
+2. larger fields of view (with 160 nm) may tend to produce higher 
+noise estimates, leading to worse precision estimates.
+
+-- > I could apply a better background estimation method, but this 
+would slow down processing a bit.
+
+These would both be good ideas if the resolution estimate needs to 
+be reasonably exact, rather than a gauge for approximate indication. 
+Will add to list.
+
+Eric
+
+--
+
+
+Version 2-30
+Feb 2013
+
+1. *** Edited Segmentation code (rainSTORM_avNMS) 
+   Removed a bug 
+   in which adjacent pixels of identical (post-averaging) brightness 
+   would both be rejected as non-maxima. 
+   Now one is chosen, by switching half the ">" to ">=".
+   See the function code for details. 
+   This is important for particle tracking in simulated data, 
+   because otherwise a spot may occasionally not be localised... 
+   producing a break in the localistions that spoils trajectory threading.
+   It is also generally a 1% improvement (on simulated data). 
+   --- Thanks to Tim Beeson Jones for spotting this bug with 
+    the trajectory data simulations. 
+
+2. Fixed the duplicate "str2num" bug which caused V2.29b to fail 
+   when calculating precision, due to not having a numerical pixelWidth
+
+3. USER NOTE
+   Important
+   When running the parallel processing code, there is no waitbar.
+   It may appear that the localisation process is not running.
+   If this happens...
+   Do not fiddle with the GUI buttons before checking whether it is 
+   already running (i.e. check the "running" status on the MATLAB 
+   console). 
+   Fiddling with the GUI buttons while a script is already running
+   may produce unexpected results.
+   (The risk I've seen is simply that it wastes time by queuing up 
+   a second run of the image processing step. But it's easy to imagine
+   some other bug might occur.)
+
+4. Added Alex Knight's parallel RAW code as a GUI option. 
+   This function has been renamed to "rainSTORM_main_GUI_RAW_par.m"
+
+5. Diffusion Imaging. 
+   Currently done in a basic form - really for testing, rather than
+   obtaining accurate Diffusivities.
+   Note that some parameters are set in the script -
+   It assumes a camera cycle time of 20 ms, 
+   And defaults the Diffusivity colour scale 
+   to a range of 0-2 microns^2 per second.
+   It also doesn't correct for localisation error (assumed small)
+
+   Algorithm:
+   I'd describe this as "Closest neighbour threading" and
+   "Hard Line Visualisation"
+
+   The script is "rainSTORM_extras_TrajectoryFitting"
+   To use this...
+   Run the REVIEWER
+   Then run the "Box Tracker" on the area of interest
+   Then run the Trajectory script.
+
+
+
+Version 2-29, 
+Jan 2013
+
+Introduced a basic trajectory-finding routine, based (without seeing code) 
+on Crocker and Grier 1996. 
+
+This plots trajectories, colour coded by apparent diffusion co-efficient
+. 
+The calculation of diffusion co-efficient is very basic, and is not yet 
+accurate for interpretation - only for visual inspection of large trends. 
+
+To Do:
+1. Include Alex Knight's parallel RAW processing method, sensibly. 
+2. Improve trajectory-fitting routine.
+3. Check box tracking on simulated data - with IIBs, noticed a few frames 
+pick up spurious fluorophore positions, leading to breaks in trajectories. 
+Need to check the traj-spotting code, and possible fitted positions. 
+(Still, could be a random 
+
+
+Version 2-28
+9 January 2013
+
+1. Separated "rainSTORM_save" method into a separate function from Reviewer.
+   This simplifies Reviewer.m, and enables identical Save calls from the 
+   batch processing script. 
+
+2. Largely re-wrote rainSTORM_extras_batchProcess
+   This script now calls functions (instead of manually coded methods):
+     rainSTORM_main_GUI_both
+     rainSTORM_reviewer
+     rainSTORM_histograms
+     rainSTORM_save
+   Since it calls rainSTORM_save, it does save text -info files now. 
+   The saved -info files appear to be correct.
+   And since it now calls rainSTORM_reviewer, it saves both the 
+    -dataImage and -processed image using post quality-controlled 
+    Accepted Localisations, and not all Candidate Localisations.
+   It processes RAW files by default
+   Manual edit of the "fileType" allows TIFs to be processed instead.
+
+3. Edited the str2num() functions in Reviewer.m
+   These are now placed before the rainSTORM_reviewer function call, 
+    instead of being a part of it. 
+   This simplifies copying the function call.
+
+4. Tested rainSTORM_extras_batchProcess on a folder with 2 RAW files.
+   It seems to run OK. 
+   Closes windows OK after plotting, which saves clutter.
+
+5. Added a license note to the top of files. 
+   The 1 line license note points to the file 00_license.txt
+   This specifies LGPL Version 3 or later, which I think is OK.
+   (LGPL chosen, not GPL, due to uncertainty over the ability to 
+     use the MATLAB compiler with GPL code. Also, note that other 
+     libraries exist already for Localisation Microscopy, e.g. 
+     in ImageJ. The LGPL disclaimer seems to be suitable.)
+
+
+Version 2-27
+11 DEcember 2012
+
+1. Edited Histograms plot, to show # Rejected as well as Accepted localisations
+   AND added a smooth(numberAcceptedPerFrame,100) for better display.
+   AND write the (unsmoothed) values to the base workspace.
+
+2. Edited Reviewer.m 'save' method, to record # Rejected Candidates
+
+3. Edited 'rainSTORM_histograms.m', to reduce wasted space in histograms figure.
+   If this isn't working, change the four subplot commands in this script back 
+   to their simple forms - e.g. subplot(2,2,1) - which are now commented out.
+
+4. Changed Reviewer GUI default value of "Updated Signal Counts" to 0. 
+   This is more compatible with cameras with unknown "zero level."
+   For Cambridge, set this value to about 10000, and NPL to about 4000.
+
+5. Edited Reviewer.m so a default choice of algVisual exists in the base 
+   workspace, and this value is set to 1 when the Reviewer is created.
+   This will make editing the rainSTORM_display method simpler, 
+   When implementing the alternative, Jittered Histogram visualisation.
+
+To Do: 
+  1. Dense Localisation Algorithm (with DH, TBJ)
+  2. Jittered Historgram Visualisation.
+
+
+Version 2-25
+19 Sept 2012
+
+2 bug fixes. Direction of offset transform, plus one -1 bug.
+
+1. Plots Control Points identified for drift correction.
+
+To Do: 
+
+(a) Decide method for choice of visualisation
+    - Preserve the -"dataImage" as a "Simple Histogram" visualisation.
+    - ... For backward compatibility, and localisation counting.
+    - Modify the "_Display" algorithm (perhaps?)
+    - If an algorithm other than "Simple Histogram" is chosen
+    - ... Then call the additional reconstruction function here, 
+    - ... And plot the "Jittered Historgram" etc. from here
+    - Replace the "Processed Image" with the Jittered Histogram visualisation.
+    - And save a '-jHistData' as well as 'dataImage'
+
+
+
+Version 2-24
+September 2012
+
+In progress:
+
+1. Adding Optical Offset, evaluation and correction, to Reviewer
+   - in progress
+   - Done - but have not got real data to test yet...
+
+2. Adding choice of Visualisation Algorithm to Reviewer
+   - Added menu to select a named Visualisation Algorithm
+   - Currently options for 'Simple Histogram' and 'Jittered Histogram'
+   - This choice is currently not used!
+   - It sets the value of 'algVisual' in the base workspace
+   - This will be used (later) in _display, and _recon, to plot the chosen data
+   - The "dataImage" should probably remain as a simple histogram, for counting localisations
+
+
+3. Edit LocsPerFrame to Histograms plot - DONE, as a function (for compilation)
+   - The new function is rainSTORM_LocsPerFrame(~) based on the _extras script
+
+4. Edit Resolution range in saved text file: Sparrow-Thompson is now "Precision Limit"
+      and the 2--3 sigma-hat range should be given by Precision-Limit -- PALM limit
+      (without meaning to say PALM is necessarily less well resolved - rather that 
+       having 1 Localisation per fluorophore means the resolution should probably be 
+       3 sigma-hat.)
+       Sigma-hat is the r.m.s. Thompson localisation precision of accepted localisations.
+
+5. Move Thompson Precision Calculation to the Run Reviewer command, for stability
+   - Actually, this is already done (good - have checked this is OK.)
+
+
+
+Version 2-23
+ 25 June 2012:
+
+To Do:
+1. Localisations per frame in Histograms window
+2. Merge SumFrame into main loop
+3. MAKE BATCH PROCESS OUTPUT INFO FILE
+4. Edit LocsPerFrame to allow >1 pixel movement - AC774 edit
+5. Improve memory allocation.
+
+- FORWARD COPY TO ANN WHEELER. These "To Do" actions now apply to V2-24...
+
+
+
+Version 2-22
+4 May 2012
+
+TO DO - EJR - TEST on known data, to ensure GUI name calls haven't gone wrong...
+          
+
+1. "axis equal" in box Tracker, so X and Y CCD pixel widths visualise at same size
+
+2. Changed the default "Reconstuction Scale Factor" in the Reviewer to 5. 
+   This used to be 10, and 10 may still look better with high precision data, 
+   but 5 seems like a better starting point. With 160 nm sample pixel widths, this 
+   means the reconstruction pixel width is 32 nm.
+
+3. NEED TO: Fix Centre of Mass algorithm to generate some parameters for approximage
+   Quality control - e.g. width = std dev of intensity...
+   DONE. (See change number 5.)
+
+4. Batch Processing. rainSTORM_extras_batchProcess is now in an untested 
+   (and so possibly unstable) working state. 
+   To use it, first process one image 
+   stack normally (Process Images AND Run Reviewer). 
+   Then run the script rainSTORM_extras_batchProcess.m
+   Identify one of the .RAW files in the folder to be batch processed 
+   (this is set up for Daniel to batch process RAW files - edit for TIFS).
+   You may need to select "All Files, *.*" in the dialog box, to find .RAW files
+   It should process each image stack in the target folder - the image stacks 
+   must be the only .RAW files, or else it may try and fail to process some other 
+   types of image files.
+   Leave to run.
+   Hopefully it will save the required files. No guarantees this works - untested.
+
+5. Re-named "Centroid" Algorithm as "Centre of Mass" in GUI
+   This is more descriptive, and should be more intuitive for users.
+   *** BUT DO NOT ACTUALLY USE THIS ALGORITHM, EXCEPT FOR COMPARISON! ***
+   The "Centre of Mass" algorithm is a terrible, imprecise algorithm!
+   It tends to produce a "Gridding Effect" in the localised fluorophore density.
+   It returns the 1st moment of intensity as a position
+   It returns the 2nd moment of intensity (separately in Row- and Col- direction)
+  for the purpose of evaluating the PSF width (sigma value), for Thompson Precisions
+   This algorithm also now writes the background estimate into ------Params.
+   
+6. Redefined in MAIN_GUI_BOTH and MAIN_GUI_TIF:
+
+   allowSig = [0.5 (rad+1)]; % More robust against ROI radius not equal to 3
+   prevSF = 5; % Preview scale factor now 5, since 10 often clipped on screen size.
+
+7. ***
+  Changed the default value of Signal Counts, in the rainSTORM "Process Images" GUI
+  to a value of zero (0000). This means the default algorithm will behave in a more 
+  intuitive manner, when the camera background level is below the previous default 
+  setting (5000 - which is below our CCD background level, but will not be below 
+  all CCD background levels). I.e. all users will start with, effectively, 
+  no brightness threshold applied to fitting candidates during the search stage - 
+  this option was only ever there to accelerate the Search phase, and the Halt3
+  algorithm does this anyway.
+   IF USING THE "THOROUGH" OR "CENTRE OF MASS" ALGORITHM, YOU'LL NEED TO SET 
+  A HIGHER THRESHOLD (OFTEN > 10 000 OR 5000), TO PREVENT OUT-OF-MEMORY ERRORS.
+  ***
+
+
+
+
+Version 2-21:
+26 April 2012
+
+1. Removed the (unnecessary) rainSTORM GUI option to set 'initX0.' 
+   It is fixed at xero instead.
+
+2. Decreased rainSTORM GUI size, to fit screen.
+
+3. Updated Algorithm Selection. 
+   (a) Least Squares Gaussian Halt3    -- sparse fitting, frame skip after 2 fails
+   (b) Least Squares Gaussian Thorough -- sparse Gaussian fitting without breaks
+   (c) Centroid -- fits Centre of Mass, but not (YET) compatible with Reviewer
+
+   The Default is the same: Least Squares Gaussian Halt3 (rainSTORM_fitLocGF3)
+   This default option is faster and often does not miss much good quality data.
+
+   The "Thorough" algorithm may be helpful when using beads (Daniel???)
+   
+
+TO DO: Modify centroid method to generate a width (std dev?) and photon count, 
+to enable Sparrow Thompson and other Quality control method by Reviewer
+
+4. Added a "Delete Boxed" button to the Box Tracking / Drift Correction part 
+   of the Reviewer. 
+   This button deletes boxed localisations from reviewed------ and SupRes------
+   The other methods no longer delete these localisations, and they must be 
+   explicitely deleted with this method if you want them deleted.
+
+
+DESCRIPTION OF DRIFT CORRECTION METHODS:
+
+Box Tracker
+(a) Finds all the reviewedPosits (and reviewedParams) within a user-defined 
+    rectangular box, on the most recent "Reviewed Image" figure.
+(b) Saves these to the base workspace as boxedPosits (and boxedParams)
+(c) Identifies the brightest boxed localisation from each frame as a potential 
+    fiducial marker position (as markerPosits)
+
+
+--- DOES NOT (YET) APPLY ANY RUNNING AVERAGING OR INTERPOLATION TO FIND 
+MARKER POSITIONS MORE ACCURATELY --- BUT THIS IS A GOOD POSSIBILITY
+
+Set Anchor: 
+Defines a true position for the fiducial marker, by finding the arithmetic mean 
+position of all the markerPosits that were identified by the Box Tracker.
+
+Delete Boxed:
+Saves unedited SupResPosits and SupResParams, if not yet edited, as Saved----------
+Removes reviewedPosits and reviewedParams that are inside the currently defined box.
+Overwrites SupResPosits and SupResParams with reviewed---------- so that future 
+calls to the reviewer refer to corrected data.
+
+
+Subtract Drift: 
+(a) If the processed image stack is unedited results changed for the first time, 
+    then saved the found localisations as SavedSupResPosits (etc. for parameters)
+(b) Identifies required drift correction to move the markerPositions, found by the 
+    boxTracker, onto the anchor position
+    - This correction is a simple XY translation
+(c) Corrects localisations from all frames of data for which a driftCorrection 
+    can be identified.
+(d) DOES NOT DO THIS STEP  ANY LONGER - USE "DELETE BOXED"
+    ( Deleted localisations can be reverted using the "Revert Data" button on 
+    the Reviewer. )
+
+"Revert Data"
+(a) Overwrites SupResPosits with SavedSupResPosits (etc for parameters), so that 
+    subsequently pressing "Run Reviewer" will be able to use all of the initially
+    found candidates to reconstruct a new image. I.e. it restores localisations that 
+    may have been deleted because they were used as fiducial markers for drift 
+    correction.
+   
+
+
+Version 2-20:
+
+PLEASE CHECK THIS VERSION BEHAVES CORRECTLY FOR YOU
+ - I have particularly checked scalebar lengths, and saved image sizes - EJR
+ - But another check by other users would be advantageous.
+
+Several fixes and hopefully improvements in software robustness.
+
+This version should still compile - it is still all written as functions.
+
+1. Edited Histograms method. This is now a separate function, rainSTORM_histograms
+   (a) Thompson precision range is now scaled by default to the 0-150 nm range, 
+       which is probably the most interesting range. This is to assist auto-saving.
+
+2. Edited histogram saving. 
+   (a) rainSTORM_histograms captures the figure window at the time of plotting
+   (b) The newest such figure capture will be saved if you click "Save Image"
+   (c) Hence user-edits to the figure window will not be captured
+   (d) However the method is now robust against capturing the wrong figure
+   (e) Furthermore the histograms are saved even if the window was closed
+   (f) And if no hists were plotted for this image stack, then a -hists figure 
+      will not be saved (and this behaviour is now correct)
+
+
+3. Consider a batch processing method...
+   
+   NOTE: I am aiming to pass most software data via the 'base' workspace
+         This is to facilitate user-access to the data during processing
+         Also I think it is neater than argument-passing, for developing new functions
+         However, it does mean relying on a lot of global-like variables, which 
+        could be a problem if other scripts are needed at the same time - 
+        although the rainSTORM variable names are fairly long, descriptive, and 
+        distinctive.
+
+4. Reviewer records to 'base' workspace:
+   (a) densestPoint % highest "# Localisations in a super-res pixel"
+   (b) numberOfFits % Number of candidate localisations (before quality control)
+   
+   And the Reviewer prints to the Matlab console:
+   (c) SparrowThompsonLimit % Limit of resolution due to estimated localisation error
+
+   NOTE: Still need to improve background estimatation for SparrowThompson Resolution
+
+5. Fixed Bug in saving the Sum Image - 
+   (a) Now the Sum image should be saved with a scale factor imported from 
+    "linMag" from the base workspace - this value is the scale factor of the newest 
+    SupResIm reconstruction, as saved to the base workspace by rainSTORM_display
+    - this replaces an arbitrary 
+    factor of 10, which seemed to afflict my Version 2.19 
+    - APOLOGIES - EJR!)
+
+6. Fixed unsatisfactory coding of preview sum image
+   (a) Scale Factor is set to equal the preview reconstruction scale, 
+      using a (percentage) magnification of 100xprevSF
+   "prevSF" refers to "preview Scale Factor"
+
+7. Separated the reconstruction figure plotting into a separate function
+
+   figNewReconHandle = rainSTORM_display(SupResIm, linMag)
+
+   (a) For consistency and robustness, the same script is used by both 
+      the "main" script and the Reviewer to plot a Localisation Density Histogram
+   (b) "linMag" is the pixel width scale factor. It is now hard-coded to 10 by 
+      the "main" scripts, so preview images are constructed with 10x the number of 
+      rows and columns. The preview Scale Factor is "prevSF"
+   (c) "linMag" for the Reviewer is set by "reconstructionScaleFactor" - Reviewer
+   (d) rainSTORM_display stores the latest linMag value to the base workspace
+   (e) Hence "-sum" figures can be saved with the same scale factor as the latest 
+      reconstruction, regardless of whether it is a preview or a review.
+
+   ONLY REVIEWS will have full quality control data and histograms.
+
+*** 6 In Progress!!!***
+
+8. Fixed the linebreak issue with the text "-info" file
+   (a)   fid = fopen([J '-info.txt'], 'wt'); % "wt" opens file to write text
+   (b) "wt"mode fixes some platform-dependent text writing issues, e.g. linebreaks
+   Can now open these files OK with notepad
+
+9. Edited "BoxTracker" so boxedPosits and boxedParams are saved to "base", as they 
+   were always meant to be, for possible inspection by the user!
+
+10. Modified Graphic Output form of boxTracker!!!
+
+    Note the scatterplot now scales to data - you now need to set ranges manually 
+   if you want comparisons on the same scale.
+
+    "Box tracker" colour scale now refers to frame number, not localisation number
+   This is probably an improved visualisation when tracking features other than beads
+
+    Also commented out the xlim([ ]) / ylim([ ]) lines of box tracker
+    This is so that it can be used to visually scan for motion blur in Actin Filaments
+   or other specimens.
+    Uncomment lines 98 and 99 of boxTracker, if you want a zoomed-in view of 
+   tracked spots, suitable for bead tracking, by default.
+
+
+11. Note on colocalisation of RGB using LCD monitors. 
+    There's a small (usually vertical) offset in the position of R,G, and B LCD pixels
+    This should not be mistaken for a genuine offset in localised positions.
+
+
+
+Version 2-19:
+
+Currently editing to attempt to following features:
+
+1. Enabled 2-colour drift correction, with separate image stacks.
+
+2. Also renamed buttons: Box Tracking (this is OK); Subtract Drift (replacing Undo drift); and Revert Data (replacing "restore drift") - DONE.
+
+
+... Box Tracking
+... Set Anchor (Can be set from separate colour data)
+... Subtract Drift (need to re-assign methods from boxTracking to Undrift)
+... (Revert Data)
+
+TO DO: 
+1. Recast the permitted workflows (using flags?) to ensure that pressing buttons in an unexpected order does not cause spurious figures to be saved - i.e. make foolproof
+
+2. Edit Box Tracking / Drift Correction so that using buttons in the wrong order either does nothing, or does nothing disastrous (e.g. reloading data from a previous set of localisations). 
+
+
+Version 2-18:
+
+Extended post-processing to enable use of fiducial markers to mitigate XY drift.
+
+1. Added rainSTORM_boxTracker function, and attached to Reviewer GUI
+
+2. Added rainSTORM_unDrifter function, and attached to Reviewer GUI
+
+3. Added a "Restore Drift" button to the Reviewer, which reverts to the 
+uncorrected localisation data - this will be useful if you want to switch bead, 
+or if you "correct" the positions twice, leading to bonus drift...
+
+Together, these functions can identify, plot, and reverse a simple translational drift, measured using a single fiducial mark - e.g. a fluorescent bead.
+
+The _boxTracker:
+(a) identifies all the localisations within the user-defined box, and
+(b) idenfies the brightest box localisation from each frame as a fiducial mark, and
+(c) It processes reviewedPosits, 
+******* so you first have to run the reviewer to ID good localisations. *******
+(d) It stores positions and parameters as boxedPosits, and boxedParams.
+(e) The boxed data are removed from reviewedPosits and reviewedParams...
+*** This is so the undrifter excludes the fiducial region from corrected reconstructions
+
+The _unDrifter:
+(a) Uses the identified fiducial marker within the boxed data.
+(b) The framewise marker position is used to correct other localisations,
+using a simple translation.
+
+This could conceivable go wrong, if:
+  (a) there are two or more markers in a large box
+  (b) there is no marker in the box
+  (c) the single marker actually moves around due to poor fixation to the coverslip
+
+To Do: SEPARATE RECONSTRUCTED FIGURE PLOTTING INTO A "rainSTORM_Plotter" - 
+       - possibly this should be part of rainSTORM_recon
+
+
+NOTE: The colour code in the box-tracker scatter plot is NOT INTUITIVE
+Presently, the colour code gives the order of the localistions - NOT NECESSARILY 
+A REPRODUCIBLE INDICATION OF FRAME NUMBER. (It is monotonic with time for any set 
+of boxed data, but not comparable between sets.)
+
+
+
+Version 2-17 (20 Feb 2012)
+
+Minor Edit
+
+1. Added Reviewer lines so that the saved "-info" file contains a record of the total number of Candidate Localisations, and the number of these that were Rejected (by Quality Control methods applied in the reviewer, not implicitely by Search), as well as the number of Accepted localisations.
+
+2. Changed "Save Image" method in Reviewer, so that the "-sum" image is saved with the same "reconstructionScaleFactor" used to plot the reconstruction - for easier overlay.
+
+STILL NEED TO: Address spurious Figure and Data saving that occurs if the Reviewer is not run, or if windows are closed that are needed to be saved. 
+
+
+
+Version 2-16 (27 Jan 2012)
+
+Minor edit.
+
+1. Rescaled the "Sum" image save in the save method, so that the saved greyscale values cover the MIN--MAX range of the data (like the Matlab figure) rather than the ZERO--MAX range. This avoids a washed-out appearance when viewing without a contrast stretch.
+
+2. Corrected the mis-scaled waitbar for calculating sum images (which applied to TIFs only in serial processing mode, as I previously overlooked the factor of 2 there).
+
+3. Checked the Histogram auto-scaling. I don't think this should lead to the histograms overhanging the edge of the display, but correct me if I'm wrong.
+
+4. Also edited the STORM image simulation script, to include Thompson's method (Biophys. J. 2002) of simulating quantum photon statistics by converting expected photon numbers into a Poisson-distributed variate.
+
+
+
+Version 2-15 (25 Jan 2012):
+
+1. Fixed bug which failed to apply Frame Range properly in Reviewer:
+
+It looks like I've made a mistake and have somehow blocked the line of code that is meant to exclude frames from before the start number. Apologies, and well spotted!
+
+The problem does not affect Version 2.10 or earlier. It does seem to affect V2-12 and V2-14. It is (simply) a typo where I have deleted a new line feed.
+
+I attach rainSTORM Version 2-15, with this bug fixed.
+
+Two other notes:
+
+2. Please always run the Reviewer before plotting the histograms or saving the output for a new input file. This is because the precision esimates are produced by the Reviewer - so in order for the histograms, and the -info file, to be correct, you need to run the reviewer on each new file of data. I will fix this in a later version, so it can't go wrong.
+
+3. For V2-15 I have also changed the Frame Range method so that the numbers you type allow you to select frames inclusive of the numbers that you type (which I think is the way that you have been using it - I previously set the frame range exclusive of the edge numbers, which of course causes slight edge effects if used in a different way).
+
+
+
+
+Version 2-14:
+
+To Do: 
+- Determine Sparrow-Thompson limit of resolution
+- Improve Image Saving so that we don't need figures in correct order on desktop
+- Explain low-contrast sum image
+- Plot N localisation vs frame number, in histogram
+
+Have done:
+
+1. figNewReconHandle
+   Used a figure handle in the base workspace to esnure the most recent reconstructed image is saved by the Save Images button (rather than the top figure). 
+
+   BEWARE: This method uses a figure handle, which is updated each time a new visualisation is plotted. It is possible for this handle to point to the wrong figure - say if you close the latest visualisation. Hence you should check the correct image has been saved. (The -STORMdataImage is saved from numerica data and should always be correct: it can be used to verify the correct processed image has been saved, if necessary.)
+
+2. Low contrast -sum image
+   The sum image is the average of all the raw images. Single molecule signals become rather washed out by averaging with a great deal of background - hence low contrast can be a problem with sum images. I notice they are only 8-bit greyscale (as I save a png using double precision 0-1 numbers).
+
+3. Determines Sparrow-Thompson limit of resolution, 
+   and saves in the -info file 
+
+   Sparrow-Thompson Limit is determined in rainSTORM_reviewer, after rainSTORM_precision returns.
+
+   BEWARE: if Save Images is used before running the reviewer, then a previous set of values will be saved - always run the reviewer before using its "save images" button.
+
+4. Localisations per CCD frame...
+   Added Extras to plot this: rainSTORM_extras_LocsPerFrame.m
+   Run after running Reviewer.
+
+   
+5. Comma-delimited the info file. 
+   In Microsoft Excel, the Data>Text to Columns function can now automatically 
+   convert this data into 2 columns, as required, without needing to ask what the 
+   delimiting character is.
+
+6. Made Histogram text fontSize 12, and bold, for clarity.
+
+
+
+Version 2.12
+
+
+1. Save a text file containing Quality Control data for reconstructions;
+       - Done, although need to decide whether more parameters are needed
+
+2. Applies the allowed Thompson precision cutoff to both directions 
+   (This seems to be the most reasonable method)
+       - Done for V2-12
+
+3. Find "reviewedDeltaX" and save to workspace, so we can easily find the mean 
+   Thompson precision of the fits used in the actual reconstruction. 
+   (reviewedDeltaX matches reviewedPosits 
+      and reviewedParams).
+       - Done for V2-12
+
+Tested on MATLAB 2009b, for Coli TIFF stack (474MB) and RAW (80MB). 
+Produces results consistent with previous analyses. 
+Does not crash or raise warnings.
+
+To Do: 
+a) 3D visualisation methods
+b) Save localised positions (as XML or MAT, etc.)
+
+
+Version 2.11
+- released only for illustrative purposes; probably works
+
+1. Ensured reviewedParams are written to 'base' workspace by rainSTORM_reviewer. 
+These should now be accessible to the user, 
+and also accessible to the Z-localisation script that is added as described below.
+
+2. Edited reviewer so that the allowed newSig ranges are applied to both the Row- and Column-directions.
+
+To Do: Consider Holtzer... Schmidt (2007) and work out how to parameterise / implement 
+an astigmatic Z-determination, including efficient calibration... 
+DONE; understood; and maths implemented with correct (and formally required) verification of ansatz.
+
+3. We include "crossed_lines.png" and rainSTORM_extras_3D_specimen_simulation.m 
+which is a script (not a GUI) that creates a stack of 3D Localisation Microscopy images 
+which might be obtained from a Localisation microscope 
+(modelled with elliptical Gaussian beam approximations, as in Holtzer-2007, 
+see the script for full reference). 
+
+4. Z-localisation based on the Holtzer-2007 method is implemented as an optional extra. 
+This is a stand alone script (not yet in the GUI) which can be run after performing image 
+processing by rainSTORM_extras_z_loc.m
+
+The "Z_loc"  script contains some parameters which need to be determined for the system. 
+The rainSTORM_extras_z_cal script estimates these parameters from calibration data.
+
+To Do: 3D-visualisation can be performed in several ways, such as by producing super-resolved slices. 
+Need to choose the best method for doing this.
+
+
+
+GUI Version 2.10
+ERIC, 8 November 2011
+
+1. Added manual EM gain calibration to Reviewer. By default, uses calibration that we previously hard-coded for the iXon DV 887 at EM gain setting of 200.
+
+2. Added manual (i.e. GUI-user) control of "linMag," the reconstruction scale factor, to the reviewer
+
+3. Edited "Save Images" for Daniel. Should now autosave '-histograms' (if they are still shown on-screen as a figure somewhere), and '-SUM' image (if available in workspace memory), as well as 'STORMimageData', and '-processed'. NOTE THAT THESE METHODS RELY ON FIGURE HANDLES BEING PASSED THROUGH THE BASE WORKSPACE - SO IF YOU CLOSE THE latest HISTOGRAM FIGURE BEFORE CLICKING "SAVE IMAGES" THE WRONG FIGURE MAY BE CAPTURED. ALSO, AS BEFORE, YOUR IMAGE SAVED AS "-PROCESSED" IS THE LATEST MATLAB IMAGE FIGURE YOU HAVE BROUGHT TO THE FRONT OF THE SCREEN - HOWEVER THE "STORMimageData" CAPTURES THE NUMERIC DATA OF THE MOST RECENT RECONSTRUCTION. PROVIDED YOU ONLY KEEP THE LATEST RECONSTRUCTION ON SCREEN, THESE WILL BE THE SAME THING. (HOWEVER, I HAVE NOT FORCED MATLAB TO PERMIT ONLY ONE RECONSTRUCTION ON SCREEN, AS YOU MAY WANT TO DO COMPARISONS. IF WE DID PERMIT ONLY ONE RECONSTRUCTION ON SCREEN, SAVING THE IMAGE COULD BE MADE MORE FOOLPROOF, BUT I DON'T THINK IT'S WORTH IT.)
+
+
+4. Edited histograms to show more titles, etc, and fitted sigmas in both directions. Also added some legends, which you may or may not want to keep - they can be easily changed by editing the "Reviewer.m" (do a search for "subplot" to find the histogram code section).
+
+
+GUI Version 2.9
+ERIC, 28 October 2011
+
+1. Attempting to replace all global variables with assignin() and evalin() to and from the 'base' workspace. This is to make these variables accessible and obvious.
+
+2. As part of this, will try to fix a bug I seem to have created, whereby the 'flagSB' is not passed to the reviewer properly, which did not produce a proper scalebar (in GUI version 2.8)
+
+3. Fixed the classic 'waitbar(lpImSum/(numberOfFiles/2))' to remove the '/2' 
+
+4. Edited the Reviewer, using guide, so the default allowSig range is a more plausible [0.8 3.5] instead of [0.8 1.5]
+
+ TO DO: deal with the global PathName in rainSTORM.m
+
+global FileName PathName
+[FileName,PathName] = uigetfile({'*.tif';'*.raw'}); - Actually this is dealt with using handles, and is no longer global. I think this is OK, but need to check whether it is declared global anywhere else.
+ 
+ TO DO: - Add EM gain calibration field to Reviewer 
+        - Add linMag field to Reviewer
+        - Remove initX0 field (the initial estimate should surely be fixed to zero)
+        - Add fields for first-pass processing Quality Control variables.
+
+
+
+GUI Version 2.8
+ERIC, September 2011
+
+1. Fixed rainSTORM_main_tif, line 168, which called rainSTORM_reconHSV when it should have called rainSTORM_recon
+
+2. Some updates to prepare for astigmatism-based 3D-STORM. This means saving both ROW- and COLUMN-direction widths for the accepted fits. It is probably best to estimate separate Thompson Precisions in each direction, too.
+
+Modified "rainSTORM_precision.m":
+Thompson Precision estimates are now calculated in both the ROW-direction, AND the COL-direction. Once evaluated (by running the reviewer) these are written to the Matlab workspace as SupResDeltaX. SupResDeltaX(:,1) stores ROW-direction precisions, and SupResDeltaX(:,2) stores COL-direction precisions. They are still evaluated in nanometers, and the calculation still assumes certain fixed inputs (CCD pixel widths corresponding to 160 nm on the sample, and a fixed EM gain of 200, given the iXon DV887 calibration curve). These fixed inputs should, in a future version, be read in from XML data (if available).
+
+The Thompson precision histogram, produced by the reviewer, now displays two values: the blue bars are ROW-direction precisions, and the red bars are the COL-direction precision. For our current data, which is not astigmatic, these plots should coincide reassuringly. With astigmatic data, which is needed for certain types of 3D STORM, the red and blue curves are going to be different.
+
+The reviewer still lets you judge localisations by their Thompson precision - currently I assume the precision in the ROW- and COL-directions should be similar, so I take the mean of the two precision estimates for a localisation, and the Thompson Precision threshold is applied to that. Obviously there is a valid argument for taking the less accurate of the two estimates, and using that for thresholding (and we perhaps should do this for astigmatism-based 3D STORM).
+
+Fitted Gausian Sigma Values were already saved in both the ROW-direction (SupResParams(:,4)), as well as the COL-direction (SupResParams(:,5)). 
+
+3. I've fixed a name conflict ("path" in rainSTORM.m). The variable is now renamed as "pathstr" as suggested by the documentation of "fileparts". 
+
+4. rainSTORM_xmlread now reads the "Saved" tag of xml, so "halted" image stacks should be processed without errors.
+
+5.
+Added rainSTORM_extras_saveMAT to save some processed data. Check if this is any use.
+Added rainSTORM_extras_loadMAT to load some processed data. 
+Renamed rainSTORM_extras_view, from rainSTORM_view, which we don't use any more. 
+
+6.
+Please Note that the output named "[myExperimentName]_greyscale.png) stores the actual number of fluorophore localisations in each pixel of the "super-resolution image" / "fluorophore density map." Therefore, if you want to study the number of localisations, you can study this image (in ImageJ etc.).
+
+7. rainSTORM_main writes "sizeOfCCDFrame" to the workspace, so that we can access the size of the CCD with separate scripts.
+
+8. rainsTORM_extras_makeSTORMvideo
+Saves images needed to show the progression of STORM reconstruction data.
+And 24 Oct 2011: edited the filtering method to copy my new method in the reviewer for selecting a range of frames.
+
+
+And 24 Oct 2011
+9. Edited Reviewer to include a "newFrames" filter, which allows the user to specify a range of frames of the raw data that will be accepted to produce a visualisation.
+By default, the value of "newFrames" is set to [0 inf] so that all frames of raw data are accepted. 
+If you set newFrames to be [1 1000], then frames from 2-999 inclusive are accepted.
+
+
+10. Input pixelWidth (160 nm or 120 nm, typically) to rainSTORM_GUI
+    Write it to the 'base' workspace, along with scaleBarLn
+    Evalin() scaleBarLn and pixelWidth, to _Reviewer, and _Precision, from 'base'
+
+11. Set up variable passing from base workspace for:
+     linMag (from _main to _reviewer)
+     pixelWidth (from _main to _precision)
+     scaleBarLn (from _main to _reviewer)
+    Using:
+    Assignin()
+    Evalin()
+     
+
+12. TO DO: Implement user-defined Counts => Photons in Reviewer
+
+*******************
+*******************
+GUI Version 2.7 (updated)
+by mad52 on Fri Aug 19, 2011 12:01 pm 
+
+Here is the GUI V 2.7, with the new xml reading file
+
+
+
+
+GUI Version 2.7
+by mad52 on Mon Aug 08, 2011 4:21 pm 
+
+Here's GUI V 2.7. 
+
+Modifications include changing the saved grayscale reconstruction image to be 16-bit [Eric: this is so that the localisation density in the saved image does not saturate at 255/pixel, or rescale. 16 bits can handle up to 2^16-1 localisations, which is about 64 000, which should normally exceed the number of frames processed, so the precise number of localisations should be stored in this image], removing an extra thresholding step that may cause problems with the histograms [Eric: the value displayed on the intensity distribution histogram is now the real value used for thresholding each spot - that is the sum of the 3 central pixels - and we have removed a stray mathematical subtraction in which the threshold was subtracted from the processed data], and adding a line to the SupResParams matrix that records the image frame of a localisation (to allow exclusion of certain frames if desired).
+
+Additional visualisation methods are attached as well with names "rainSTORM_reconX", with "X" being "HSV" for the HSV confidence image, "AVP" for the average precision image, and "IP" for the intensity/precision image. To access these visualisation methods, change the reconstruction method in the main rainSTORM routine from "rainSTORM_recon" to "rainSTORM_reconX".
+
+
+
+
+GUI Version 2.6
+by mad52 on Mon Jul 04, 2011 10:51 am 
+
+GUI V 2.6 is now available. 
+
+This version allows review of fitted points based on their localisation accuracy (see 'Precise Nanometer Localization Analysis for Individual Fluorescent Probes' byThompson et al, 2002 for equation and details). 
+
+Additionally, both serial and parallel versions are combined into a single GUI that automatically runs the parallel code when possible.
+
+
+
+
+GUI Version 2.4
+by mad52 on Tue Jun 14, 2011 4:45 pm 
+
+Here is V2.4, which has an updated Reviewer interface allowing for changeable colormaps, as well as easily saving the images and adjusting image contrast. 
+
+A third fitting algorithm, the Centroid (Centre of Mass) Method, has also been added to the rainSTORM GUI.
+
+
+
+GUI Version 2.X
+Developed from Version 2.0 up to 2.7 by Mark Deimund. See also his comments on improved features. I will pick up the development at Version 2.8, which is my first new version of the GUI  --- Eric 
+
+
+************************************************
+************************************************
+VERSION HISTORY FOR PLAIN MATLAB CODE (NON-GUI):
+
+Version 1-14
+7 June 2011
+Improved the memory handling during file input.
+This speeds up a 208 second job (10000 frames) by about 11 seconds.
+The modicication is to do with reading each image frame (myFrame) from the multi-page tiff. 
+The input is 16 bit, but we convert it to 32 bit for processing. 
+By having a separate "myFrameIn" for the 16 bit data, and keeping "myFrame" for 32 bit, we avoid slow-down due to memory reallocation (compared with using "myFrame" for both). 
+General advice - avoid changing the memory size of objects within loops, where possible.
+
+Version 1-14_forXML
+7 June 2011
+Same improvement as V1-14, but for the code that reads RAW image data (and XML metadata)
+
+
+Version 1-13_forXMLraw
+2 June 2011
+A forked version of V1-12 with the file input method altered to read "RAW" binary image data. 
+We also need to read in metadata about the image (width, height, number of frames) from Alex Knight's XML files.
+This version calls a library function "xml_read" from "xml_io_tools" on the Matlab file exchange - which has a fairly permissive licence but you have to include the license.
+In the long run, it may be better (for licensing and streamlining) to figure out Matlab's xmlread() function and use that instead.
+
+
+Version 1-12
+25 May 2011
+Corrected an offset in super-resolved positions, which means that super-resolved images can now be overlaid on top of TIRF or transmitted light images without any offset.  This change does not affect the shape of the reconstructed images - it is there to ensure that a 640x640 pixel reconstructed image will be correctly registered if you overlay it above a 64x64 pixel Tirf image from the CCD (obviously you have to make the pixels of the Tirf image 10X wider, or resize it to 640x640). Without this change, the super-resolved structures appear one half pixel "to the right and down" compared with the Tirf image.
+
+
+Version 1-11
+19 April 2011
+Improved background subtraction method (the script fit_LocGF implements "subtract minimum of region of interest" replacing the "subtract median of frame" in fit_LM)
+
+
+
+Version 1-8
+22 March 2011
+More localisation parameters are returned.
+Each row of SupResPosits represents the posistion (row,col) of the localisation. 
+Each row of SupResParams stores the corresponding parameters - Threshold, tolerance, total counts (above whatever estimated background was removed), and the fitted standard deviation (width) of the Gaussian.
+
+
+Version 1-7
+2 Feb 2011
+File input changed so that the program reads in successive frames from a single multi-page TIFF file. This obviates splitting the file into separate TIFFs for each frame (which can be done in ImageJ). 
+This is more practical for real data files, which can be rapidly spooled and transported as single multi-page TIFF files. It is less practical for simulated data, which is easier to produce as separate images (since appending frames to a multi-page TIFF in MATLAB is slow for files > 1000 frames or so).
+
+
+Version 1-6
+7 Dec 2010
+Fully commented.
+A scalebar (with no text label) is added to the figure showing the reconstruction.
+Segmentation step (rainSTORM_avNMS) no longer spends any time looking for maxima near the image border.
+
+
+Version 1-4
+23 Nov 2010
+As well as generating a matrix of super-resolved posistions (SupResPosits, N rows by 2 columns), the corresponding parameters (Threshold and Fit Tolerance, to start with) are stored in the Nx2 matrix 'SupResParams'
+
+
+Version 1-3 
+19 November 2010
+Fits can now be accepted (or rejected) by THRESHOLDING and FIT TOLERANCE
+
+
+
+
+**************************************************************************
+----------------------------------------
+[ii]
+
+BUG REPORTS AND RESOLUTIONS:
+
+
+------------------
+28 Oct 2011
+
+Fixed Reviewer (fixed in V. 2.9) so that it correctly receives the Scalebar Flag, via assignin() and evalin() referencing the 'base' workspace.
+
+
+
+
+------------------
+12 Sept 2011:
+
+
+Improvements needed for next rainSTORM GUI version (will be Version_2-8).
+
+
+1. A workflow to save Matlab data (SupResParams, etc.)
+
+Name: rainSTORM_extras_saveMAT.m
+
+Method: Run this standalone script after processing a stack of images, 
+while all the processed data is still on the Matlab workspace
+
+Result: Saves a ".MAT" file with all the necessary data
+        Filename should stem from the input data filename
+
+PROGRESS - Created 
+         - Tested, and it seems to save the required data.
+
+
+
+2. Script to return save .MAT data to the workspace 
+   so that it can be processed by the rainSTORM reviewer
+
+Name: "rainSTORM_extras_loadMAT.m"
+
+Method: Load "myData.mat" and check what further tweaking is needed to get make this
+data available to the reviewer
+
+PROGRESS - created 
+         - Tested. It recalls saved data to the workspace, but does not yet interface with the GUI to enable you to review reloaded data. Try using rainSTORM_extras_view until this is fixed.
+
+
+
+3. Script to determine Z-positions: 
+
+Name: "rainSTORM_extras_calAstigZ.m" (CALibrated ASTIGmatism-based Z position)
+
+Method: Process data assuming astigmatism maps to Z-position
+        Call upon calibration data and find a best fit
+
+Result: "SupResPositZ" (or a third column of "SupResPosits")
+        Probably a separate variable is less likely to cause conflicts
+        How to handle errors in finding a Z-position (set -1?)
+
+PROGRESS: Created outline, but need to assemble from notes, and make some design choices
+
+
+
+4. Modify script to read EM gain, if available in XML data,
+   to calibrate the Thompson precision. 
+   Use a try / catch statement.
+
+Name: "rainsTORM_precision.m"
+
+PROGRESS: None as yet (13 Sept 2011)
+
+
+5. Remove option to set InitX0, because really x0=0 is the only sensible option
+
+Requires editing GUI... Read up on "Guide" function
+
+
+7. Remove "rainSTORM_view" from current version - it is a legacy feature, not needed
+ -- or make it a "rainSTORM_extra"
+
+PROGRESS: moved to _extras and renamed the function to rainSTORM_extras_view
+          Still needs editing to work as a stand-alone script
+
+
+8. Fix "rainSTORM_xmlread" to acquire the actual number of frames save, which indicated by the XML file under "Saved", not the number that was set "Series Length" which may be less if the acquisition was halted early.
+
+(I already fixed this for Daniel, but it has reverted in GUI V_2-7 somewhere between me and Mark)
+
+
+PROGRESS - Copied in from the version Mark included in V2-7_b 
+         - Tested. I think this works - the GUI reads XML and multi-page TIFFs, and it now reads the correct field (Saved) in the XML.
+
+
+9. Perfect the scalebar labelling, so it doesn't drift off the image.
+
+10. Always estimate the Thompson Precision, "deltaX" and write it to the Workspace as "SupResDeltaX"
+
+PROGRESS - Done (as part of rainSTORM_reviewer - but could move to main image processing part) 
+         - Tested - writes to workspace OK
+         - We also now get two curves of Gaussian Sigmas, a blue histogram for the row-direction and a red histogram for the Column direction, which overlap well, as expected, for 2D data.
+
+What about calculating separate deltaX for the ROW and COL directions?
+
+
+PROGRESS: rainSTORM_precision returns two columns, [row-direction precisions, col-direction precisions], and these are now written to the workspace by _reviewer, and these are saved by rainSTORM_extras_saveMAT
+
+
+11. Use both SigX and SigY for Quality Control, in the reviewer (cols 4 and 5 of SupResParams) and also in the rainSTORM_precision script (since we store both SigX and SigY now, instead of the mean Sigma value, we should use them both).
+
+PROGRESS: We now use the mean Thompson precision (in row-direction and col-direction) for quality control. They should be approximately equal, for 2D, so this should be an OK work around. However, we may need to change this for 3D using astigmatism
+
+
+12. Find out why there is an unset "yy" in the rainSTORM_reviewer.m and in some other scripts - is this a deliberate programming method from Mark (the yy isn't needed, it may just be there so that the functions return something - presumably I could set it to return a "One")
+
+PROGRESS: This doesn't seem to be a problem
+
+
+13. Deal with the "path" variable / function conflict, throughout the project!
+
+PROGRESS: Changed "path" to the recommended variable "pathstr" in rainSTORM.m 
+          In other scripts, "path" does not appear, as it has been assembled into "filename" (and in rainSTORM_extras_saveMAT, I now save the "filename" but don't mention path... ).
+          CHECKED: The GUI seems to run as expected, with no new conflicts.
+
+
+**************************************************************************
+----------------------------------------
+
+PREVIOUS BUG REPORTS AND RESOLUTIONS:
+
+
+27 May 2011 - Overlaying GUI output
+
+If you save STORM reconstructions from the GUI, using "File > Save As" from the MAtlab figure, then the saved image is 641x641 pixels - it should be 640x640 for correct overlay over the CCD images (Tirf or DIC).
+- Fixed in GUI V 2_4: option now avaiable as a "Save" button.
+
+Storm reconstructions saved from the GUI are colour images using the "hot" colormap. We need an option to save a grayscale image, so that the reconstruction can be more easily converted into a 16-bit single channel image so that it can be overlaid as a single colour channel.
+- Fixed in GUI V 2_4: option now avaiable as a "Save" button.
+
+Need option for GUI to choose to open XML/Binary images instead of TIFFs. For full compatibility with NPLs labview system.
+-- Implemented in GUI V2_7 (possibly 2_6). The "rainSTORM.m" calls a method which is appropriate to the input file (TIF, or binary RAW/XML) and also tests the availability of the parallel processing toolkit.
+
+DELETE "Im2" the image-closured image - it is not helpful and can be dangerous [EJR, 12 September 2011: surely not "dangerous" but "misleading"] , and can be done in ImageJ anyway.
+
+
+**************************************************************************
+----------------------------------------
+[iii]
+Bulletin Board summary - previous development hisory (copied 23 May 2011)
+
+This is a complete set of PALM/STORM localisation scripts for Matlab. It includes: a main script; averaging and non-maximum suppression to find regions of interest (segmentation); a nonlinear least-squares fitting script (fitting and judging); and an image reconstruction script (reconstruction). A Fluoro-Bancroft script now also up for comparison.
+
+Bug warning: rainSTORM seems to work OK, as of version 1.3, but serious bugs are still possible. Also, inference can produce artefacts!
+Verion 1-3. Implemented thresholding and fit tolerance, which work for Wurzburg images. 
+Version 1-4. Return fit parameters as well as positions (for post-processing); and added a substitute for imclose (in case licenses are out).
+Version 1-6. Applied rigorous stop conditions to fitting algorithm (saves time, looks neater). Segmentation step now avoids checking for candidate positions in the image border (saves time). Main script is fully commented. Can plot image with a scalebar (but the user must define its length in terms of CCD pixels, and it carries no text to say how many microns you think it represents).
+Version 1-7. The script now reads images from a multi-page tif of arbitrary length, which obviates the computationally wasteful process of splitting the image stack into (say) 10 000 separate files.
+Version 1-8. Now returns fitted widths in 4th column of SupResParams. Renamed reconstruction script to rainSTORM_recon (from _view), and the as-written _main script calls _reviewer, rather than plotting images directly.
+Version 1-11. Added an alternative fit algorithm, _fitLOCGF, used by default, which subtracts a local background, and stops fitting each frame after 3 misfits are found - it seems less noisy, and benefits from rapidSTORM ideas. Added one-frame utility.
+Version 1-12. Updated all the fitting algorithms to return super-resolved positions with an offset of "-0.5". This causes STORM reconstructions to be registered with the SUM images.
+
+
+
+
+**************************************************************************
+----------------------------------------
+[iv]
+ANNOUNCEMENTS
+
+
+Version 1-12 (23 May 2011)
+
+
+
+I have fixed a minor bug in the rainSTORM code. I have now included an offset of "(-0.5,-0.5)" pixel widths into the fitting algorithms. This means that STORM images can be overlaid on top of SUM images. Without this fix, the STORM images are shifted slightly to the bottom right when overlaid and compared with the TIRF images. This was a bug in previous versions, since the user was always supposed to be able to make overlays of STORM-on-Brightfield images (etc.) in this way.
+
+I have applied this update in Version 1-12 of my scripts, and I have also applied it to the copies of 1-11 and GUI_2-1 which are in use on the STORM PC. 
+
+Mark: please update your fitting code version with this, since overlay images are very useful.
+
+I will start writing a development history, or something, to list rainSTORM bug fixes. Then I'll upload to the bulletin board.
+
+For now, I have uploaded my Version 1-12 to the usual bulletin board location:
+
+http://laser.cheng.cam.ac.uk/phpBB3/viewtopic.php?f=35&t=287&p=795#p795
+
+Thanks to Miklos for spotting this - by obtaining some very sharp images of EGP in which this effect became obvious.
+
+Cheers,
+Eric
+
+-------------------------------------------

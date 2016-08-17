@@ -1,0 +1,60 @@
+Note that the tifflib mex is part of MATLAB, and is only in this folder to speed up running without changing path properties. 
+
+
+
+rainSTORM
+
+Image Processing scripts for Localisation Microscopy
+
+Copyright (c) 2012, University of Cambridge
+All rights reserved.
+
+Authors: Eric Rees, Alex Knight, Clemens Kaminski.
+University of Cambridge, and Biophysics Group NPL.
+
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program (in /license/gpl-3_0.txt and /license/lgpl-3_0.txt). 
+If not, see <http://www.gnu.org/licenses/>.
+
+
+-----------------------------------------------------------------  
+
+Acknowledgements
+
+If this software is helpful, then
+Please consider acknowledging or referencing one of the following papers:
+
+[1] Journal of Optics:
+"Elements of Image Processing in Localization Microscopy"
+Eric J Rees et al 2013 J. Opt. 15 094012
+
+This paper is a mini review of image processing in localisation
+microscopy. It accompanies this software. 
+
+
+[2] Optical Nanoscopy 2012, 1:12 
+
+"Blind assessment of localisation microscope image resolution"
+Eric J Rees, Miklos Erdelyi, Dorothea Pinotsi, Alex Knight, 
+Daniel Metcalf and Clemens F Kaminski 
+
+doi:10.1186/2192-2853-1-12
+
+This paper explains the "Precision Limit" of resolution that is 
+evaluated by the rainSTORM software. Referencing it will also 
+acknowledge the main authors of the software. 
+
+
+Note for general interest that the "rain" prefix of rainSTORM is not a
+particular acronynm. It is simply a name to assist file organisation. 
